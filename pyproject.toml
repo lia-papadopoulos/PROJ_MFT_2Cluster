@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PROJ_MFT_2Cluster"
+version = "0.0.1"
+
+[tool.setuptools.packages.find]
+where = ["."]       # where to search for packages
+namespaces = false  # prevents any folder without an __init__.py from being scanned
