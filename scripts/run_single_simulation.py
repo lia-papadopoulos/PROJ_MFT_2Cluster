@@ -5,13 +5,8 @@
 
 import time
 import numpy as np
+import importlib
 import matplotlib.pyplot as plt
-
-# IMPORT CONFIG FILE FOR SETTING PARAMETERS
-from src.simulation_parameters.paramsTest import params
-
-# IMPORT CONFIG FILE FOR MFT PARAMETERS
-from src.simulation_parameters.mft_paramsTest import mft_params as m_params
 
 # IMPORT SIMULATION FUNCTIONS
 from src.simulation_setup import setup_baseline_parameters, set_initial_voltage, setup_stimulation
@@ -29,19 +24,29 @@ from src.MFT_tools.MFT_clusteredEINetworks_tools import fcn_compare_J_C_mft_sim
 # IMPORT ANALYSIS FUNCTIONS
 from src.sim_analysis_tools import compute_firing_rates
 
+# IMPORT USER SETTINGS
+import userSettings as settings
 
-#%% USER INPUTS
+#%% UNPACK SETTINGS FILE
+sim_params_path = settings.sim_params_path
+sim_params_name = settings.sim_params_name
+mft_params_name = settings.mft_params_name
+burnTime = 0.25
+window_std = 25e-3
+window_step = 1e-3
 
-# random number generator seeds
+#%% SEEDS
 stimClusters_seed = np.random.choice(10000)
 stimNeurons_seed = np.random.choice(1000)
 networkSeed = np.random.choice(10000)
 initialVoltage_seed = np.random.choice(10000)
 
-# for computing cluster rates
-burnTime = 0.25
-window_std = 25e-3
-window_step = 1e-3
+#%% LOAD PARAMETERS
+sim_params_module = ( ('%s.%s') % (sim_params_path, sim_params_name) )
+params = importlib.import_module(sim_params_module).params 
+
+mft_params_module = ( ('%s.%s') % (sim_params_path, mft_params_name) )
+m_params = importlib.import_module(mft_params_module).params 
 
 #%% SIMULATION RUN
 

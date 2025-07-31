@@ -12,15 +12,17 @@ from src.sim_analysis_tools import compute_firing_rates
 from src.sim_analysis_tools.fcn_load_simulations import fcn_load_simulations
 from src.MFT_analysis_tools.fcn_load_mft_data import fcn_load_mft_paramSweep
 
-sim_path = '/mnt/data0/liap/PostdocWork_Oregon/My_Projects/PROJ_MFT_2Cluster/simulations/sweep_JplusEE/'
-mft_path = '/mnt/data0/liap/PostdocWork_Oregon/My_Projects/PROJ_MFT_2Cluster/mft/sweep_JplusEE/'
-save_path = '/mnt/data0/liap/PostdocWork_Oregon/My_Projects/PROJ_MFT_2Cluster/Figures/sweep_JplusEE/' 
-sim_params_path = 'src.simulation_parameters'
-sim_params_name = 'params5'
-window_std = 20e-3
-window_step = 1e-3
-burnTime = 0.1
-save_plots = True
+import userSettings as settings
+
+sim_path = settings.sim_path
+mft_path = settings.mft_path
+save_path = settings.save_path
+sim_params_path = settings.sim_params_path
+sim_params_name = settings.sim_params_name
+window_std = settings.window_std
+window_step = settings.window_step
+burnTime = settings.burnTime
+save_plots = settings.save_plots
 
 
 #%% NAME OF SWEPT PARAMETERS AS A STRING
