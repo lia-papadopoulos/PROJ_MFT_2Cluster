@@ -10,7 +10,7 @@ from src.MFT_tools.MFT_paramSweep import fcn_sweep_high_to_low_rate
 from src.MFT_tools.MFT_paramSweep import fcn_sweep_low_to_high_rate
 
 # FILE WITH USER INPUTS
-import userInput
+import userSettings as settings
 
 #%% FUNCTION FOR SAVING SIMULATION OUTPUT
 
@@ -67,10 +67,10 @@ def save_data(output_path, sim_params_name, results_backwards_sweep, results_for
 def main():
 
     # get user inputs
-    output_path = userInput.output_path
-    params_path = userInput.params_path
-    sim_params_name = userInput.sim_params_name
-    mft_params_name = userInput.mft_params_name
+    output_path = settings.output_path
+    params_path = settings.params_path
+    sim_params_name = settings.sim_params_name
+    mft_params_name = settings.mft_params_name
 
     # load sim params
     sim_params_module = ( ('%s.%s') % (params_path, sim_params_name) )

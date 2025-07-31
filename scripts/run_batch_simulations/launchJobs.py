@@ -6,7 +6,7 @@ import numpy as np
 import importlib
 
 # USER-DEFINED INFO FOR SIMULATION
-import userDefined_simInfo as simInfo
+import userSettings as simInfo
 
 # UNPACK SIM INFO
 output_path = simInfo.output_path
