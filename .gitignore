@@ -5,4 +5,7 @@
 __pycache__/
 
 docs/
+
+src/simulation_parameters/*paramsTest*
+
 tests/
