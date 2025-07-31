@@ -2,7 +2,7 @@
 from types import SimpleNamespace
 import h5py
 
-def fcn_load_mft_sweep_JeePlus(file_name):
+def fcn_load_mft_paramSweep(file_name):
 
     backwards_sweep = SimpleNamespace()
     forwards_sweep = SimpleNamespace()
