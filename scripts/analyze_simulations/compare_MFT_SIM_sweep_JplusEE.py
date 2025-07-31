@@ -14,7 +14,7 @@ sim_path = '/mnt/data0/liap/PostdocWork_Oregon/My_Projects/PROJ_MFT_2Cluster/sim
 mft_path = '/mnt/data0/liap/PostdocWork_Oregon/My_Projects/PROJ_MFT_2Cluster/mft/sweep_JplusEE/'
 save_path = '/mnt/data0/liap/PostdocWork_Oregon/My_Projects/PROJ_MFT_2Cluster/Figures/sweep_JplusEE/' 
 sim_params_path = 'src.simulation_parameters'
-sim_params_name = 'params4'
+sim_params_name = 'params1'
 window_std = 20e-3
 window_step = 1e-3
 burnTime = 0.1
@@ -28,7 +28,7 @@ def plot_rasters_rates(sim_params, param_val, spikes, bin_times, rates_cluE, bgR
     N_e = sim_params.N_e
     popIndsE = sim_params.popIndsE
     popIndsI = sim_params.popIndsI + N_e
-    sweep_param_name = sim_params.sweep_param_name
+    sweep_param_name = sim_params.sweep_param1_name
 
     _, axs = plt.subplots(2, 1, sharex=True)
 
@@ -100,14 +100,14 @@ def plot_mft_sim_rates(sim_params, inputPop, \
     plt.legend()
 
     if save:
-        plt.savefig( ('%s%s_%srates_mft_sim_sweep%s.pdf') % (save_path, sim_params_name, inputPop, sim_params.sweep_param_name) )
+        plt.savefig( ('%s%s_%srates_mft_sim_sweep%s.pdf') % (save_path, sim_params_name, inputPop, sim_params.sweep_param1_name) )
 
 
 #%% MAIN FUNCTION
 
-def main():
-#run=True
-#if run:
+#def main():
+run=True
+if run:
 
     ### MAKE DIRECTORY FOR FIGURES
     fig_path = ( ('%s/%s/') % (save_path, sim_params_name) )
@@ -158,7 +158,7 @@ def main():
     sim_params, _  = fcn_load_simulations(full_path_to_file)
 
     # get array of swept parameter
-    sweep_JplusEE_sim = sim_params.sweep_param_array
+    sweep_JplusEE_sim = sim_params.sweep_param1_values
 
     avg_activeRate_E_1Active = np.zeros(len(sweep_JplusEE_sim))
     avg_inactiveRate_E_1Active = np.zeros(len(sweep_JplusEE_sim))
