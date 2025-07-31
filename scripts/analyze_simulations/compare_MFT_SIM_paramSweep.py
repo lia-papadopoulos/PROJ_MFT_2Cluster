@@ -4,31 +4,50 @@
 import numpy as np
 import os
 import glob
+import importlib
 import matplotlib.pyplot as plt
 
+from src.simulation_setup import fcn_swept_param_name_val_str
 from src.sim_analysis_tools import compute_firing_rates
 from src.sim_analysis_tools.fcn_load_simulations import fcn_load_simulations
-from src.MFT_analysis_tools.fcn_load_mft_data import fcn_load_mft_sweep_JeePlus
+from src.MFT_analysis_tools.fcn_load_mft_data import fcn_load_mft_paramSweep
 
 sim_path = '/mnt/data0/liap/PostdocWork_Oregon/My_Projects/PROJ_MFT_2Cluster/simulations/sweep_JplusEE/'
 mft_path = '/mnt/data0/liap/PostdocWork_Oregon/My_Projects/PROJ_MFT_2Cluster/mft/sweep_JplusEE/'
 save_path = '/mnt/data0/liap/PostdocWork_Oregon/My_Projects/PROJ_MFT_2Cluster/Figures/sweep_JplusEE/' 
 sim_params_path = 'src.simulation_parameters'
-sim_params_name = 'params1'
+sim_params_name = 'params5'
 window_std = 20e-3
 window_step = 1e-3
 burnTime = 0.1
 save_plots = True
 
 
+#%% NAME OF SWEPT PARAMETERS AS A STRING
+
+def fcn_sweep_param_name(sim_params):
+
+    sweep_param_str = ''
+
+    for i in range(0, sim_params.n_sweepParams):
+
+        key_to_param_name = ( ('sweep_param%d_name') % (i+1))
+        paramName = vars(sim_params)[key_to_param_name]
+
+        if i == 0:
+            sweep_param_str = ( ('%s%s') % (sweep_param_str, paramName))
+        else:
+            sweep_param_str = ( ('%s_%s') % (sweep_param_str, paramName))
+
+    return sweep_param_str
+
 #%% FOR PLOTTING RASTERS AND RATES
 
-def plot_rasters_rates(sim_params, param_val, spikes, bin_times, rates_cluE, bgRate_E, rates_cluI, bgRate_I, save=False, save_path=''):
+def plot_rasters_rates(sim_params, sweep_param_str, spikes, bin_times, rates_cluE, bgRate_E, rates_cluI, bgRate_I, save=False, save_path=''):
     
     N_e = sim_params.N_e
     popIndsE = sim_params.popIndsE
     popIndsI = sim_params.popIndsI + N_e
-    sweep_param_name = sim_params.sweep_param1_name
 
     _, axs = plt.subplots(2, 1, sharex=True)
 
@@ -51,7 +70,7 @@ def plot_rasters_rates(sim_params, param_val, spikes, bin_times, rates_cluE, bgR
     axs[0].set_yticks([])
     axs[0].set_xlabel('time [s]')
     axs[0].set_ylabel('neurons')
-    axs[0].set_title( ('%s = %0.3f') % (sweep_param_name, param_val))
+    axs[0].set_title( ('%s') % (sweep_param_str))
 
     axs[1].plot(bin_times, rates_cluE[0,:], color='lightseagreen', label='Eclu 1')
     axs[1].plot(bin_times, rates_cluE[1,:], color='mediumpurple', label='Eclu 2')
@@ -65,24 +84,33 @@ def plot_rasters_rates(sim_params, param_val, spikes, bin_times, rates_cluE, bgR
     axs[1].legend()
 
     if save:
-        plt.savefig( ('%s%s_rasters_rates_%s%0.3f.png') % (save_path, sim_params_name, sweep_param_name, param_val) )
+        plt.savefig( ('%s%s_rasters_rates_%s.png') % (save_path, sim_params_name, sweep_param_str) )
 
 
 #%% FOR PLOTTING MFT AND SIM RATES
     
 def plot_mft_sim_rates(sim_params, inputPop, \
-                       JplusEE_backwards_mft, JplusEE_forwards_mft, sweep_JplusEE_sim , \
+                       sweep_params_array_back_mft, sweep_params_array_for_mft, sweep_JplusEE_sim , \
                        activeRate_E_backwards_mft, inactiveRate_E_backwards_mft, bgRate_E_backwards_mft, \
                        activeRate_E_forwards_mft, inactiveRate_E_forwards_mft, bgRate_E_forwards_mft, \
                        avg_activeRate_E_1Active, avg_inactiveRate_E_1Active, avg_bgRate_E_1Active, \
                        save=False, save_path=''):
+    
+    # check dimensions
+    if sweep_params_array_back_mft.ndim == 1:
+        x_back = sweep_params_array_back_mft.copy()
+    else:
+        x_back = sweep_params_array_back_mft[0,:].copy()
+
+    # label for x axis
+    x_label = fcn_sweep_param_name(sim_params)
 
     plt.figure()
     # backwards
-    plt.plot(JplusEE_backwards_mft, activeRate_E_backwards_mft, '-', linewidth=5, color='lightseagreen', label= ('active %s MFT' % inputPop)) 
-    plt.plot(JplusEE_backwards_mft, inactiveRate_E_backwards_mft, '-', linewidth=2, color='mediumpurple', label= ('inactive %s MFT' % inputPop))
+    plt.plot(x_back, activeRate_E_backwards_mft, '-', linewidth=5, color='lightseagreen', label= ('active %s MFT' % inputPop)) 
+    plt.plot(x_back, inactiveRate_E_backwards_mft, '-', linewidth=2, color='mediumpurple', label= ('inactive %s MFT' % inputPop))
     if np.isnan(avg_bgRate_E_1Active[0]) == False:
-        plt.plot(JplusEE_backwards_mft, bgRate_E_backwards_mft, '-', color='gold', linewidth=5, label= ('bgr %s MFT' % inputPop))
+        plt.plot(x_back, bgRate_E_backwards_mft, '-', color='gold', linewidth=5, label= ('bgr %s MFT' % inputPop))
     # forwards
     '''
     plt.plot(JplusEE_forwards_mft, activeRate_E_forwards_mft, '--', linewidth=2, color='gray', label='clu %s MFT (uniform)')
@@ -95,7 +123,7 @@ def plot_mft_sim_rates(sim_params, inputPop, \
     plt.plot(sweep_JplusEE_sim, avg_inactiveRate_E_1Active, 'o',color='mediumpurple', label= ('inactive %s SIM' % inputPop))
     if np.isnan(avg_bgRate_E_1Active[0]) == False:
         plt.plot(sweep_JplusEE_sim, avg_bgRate_E_1Active, 'o', color='gold', label= ('bgr %s SIM' % inputPop))
-    plt.xlabel('JplusEE')
+    plt.xlabel(x_label)
     plt.ylabel('population rates [spks/sec]')
     plt.legend()
 
@@ -105,25 +133,33 @@ def plot_mft_sim_rates(sim_params, inputPop, \
 
 #%% MAIN FUNCTION
 
-#def main():
-run=True
-if run:
+def main():
+#run=True
+#if run:
 
     ### MAKE DIRECTORY FOR FIGURES
     fig_path = ( ('%s/%s/') % (save_path, sim_params_name) )
     os.makedirs(fig_path, exist_ok=True)
 
+    # LOAD SIMULATION PARAMETERS
+    sim_params_module = ( ('%s.%s') % (sim_params_path, sim_params_name) )
+    params = importlib.import_module(sim_params_module).params 
+
+
     ### LOAD MFT DATA
 
+    # name of swept parameters
+    sweep_param_str = fcn_sweep_param_name(params)
+    
     # name of mft file
-    fname = ( ('%s_mft_sweep_JplusEE.h5') % (sim_params_name))
+    fname = ( ('%s_mft_sweep_%s.h5') % (sim_params_name, sweep_param_str))
     full_path_to_file = ( ('%s%s') % (mft_path, fname) )
 
     # load mft info
-    backwards_sweep_MFT, forwards_sweep_MFT = fcn_load_mft_sweep_JeePlus(full_path_to_file)
+    backwards_sweep_MFT, forwards_sweep_MFT = fcn_load_mft_paramSweep(full_path_to_file)
 
     # unpack info we'll want to plot
-    JplusEE_backwards_mft = backwards_sweep_MFT.JplusEE_back
+    sweep_params_array_back_mft = backwards_sweep_MFT.sweep_params_array_back
     
     activeRate_E_backwards_mft = backwards_sweep_MFT.nu_e_backSweep[0,:,0]
     inactiveRate_E_backwards_mft = backwards_sweep_MFT.nu_e_backSweep[1,:,0]
@@ -133,7 +169,7 @@ if run:
     inactiveRate_I_backwards_mft = backwards_sweep_MFT.nu_i_backSweep[1,:,0]
     bgRate_I_backwards_mft = backwards_sweep_MFT.nu_i_backSweep[-1,:,0]
 
-    JplusEE_forwards_mft = forwards_sweep_MFT.JplusEE_for
+    sweep_params_array_for_mft = forwards_sweep_MFT.sweep_params_array_for
     
     activeRate_E_forwards_mft = forwards_sweep_MFT.nu_e_forSweep[0,:,0]
     inactiveRate_E_forwards_mft = forwards_sweep_MFT.nu_e_forSweep[1,:,0]
@@ -143,11 +179,10 @@ if run:
     inactiveRate_I_forwards_mft = forwards_sweep_MFT.nu_i_forSweep[1,:,0]
     bgRate_I_forwards_mft = forwards_sweep_MFT.nu_i_forSweep[-1,:,0]
 
-
     ### LOAD SIMULATION DATA
 
     # load one simulation to get array lengths
-    pattern = ('%s_sweep_JplusEE*_network0_stim0_trial0.h5' % sim_params_name)
+    pattern = ('%s_*_network0_stim0_trial0.h5' % sim_params_name)
     full_path_pattern = os.path.join(sim_path, pattern)
     files_in_directory = glob.glob(full_path_pattern)
 
@@ -158,20 +193,27 @@ if run:
     sim_params, _  = fcn_load_simulations(full_path_to_file)
 
     # get array of swept parameter
-    sweep_JplusEE_sim = sim_params.sweep_param1_values
+    sweep_param_name = sim_params.sweep_param1_name
+    sweep_param_values_sim = sim_params.sweep_param1_values
 
-    avg_activeRate_E_1Active = np.zeros(len(sweep_JplusEE_sim))
-    avg_inactiveRate_E_1Active = np.zeros(len(sweep_JplusEE_sim))
-    avg_bgRate_E_1Active = np.zeros(len(sweep_JplusEE_sim))
+    # number of values in sweep
+    nSweep = np.size(sweep_param_values_sim)
 
-    avg_activeRate_I_1Active = np.zeros(len(sweep_JplusEE_sim))
-    avg_inactiveRate_I_1Active = np.zeros(len(sweep_JplusEE_sim))
-    avg_bgRate_I_1Active = np.zeros(len(sweep_JplusEE_sim))
+    avg_activeRate_E_1Active = np.zeros(nSweep)
+    avg_inactiveRate_E_1Active = np.zeros(nSweep)
+    avg_bgRate_E_1Active = np.zeros(nSweep)
 
-    for indParam, param in enumerate(sweep_JplusEE_sim):
+    avg_activeRate_I_1Active = np.zeros(nSweep)
+    avg_inactiveRate_I_1Active = np.zeros(nSweep)
+    avg_bgRate_I_1Active = np.zeros(nSweep)
+
+    for indParam, _ in enumerate(sweep_param_values_sim):
+
+        # swept parameter string
+        sweep_params_str = fcn_swept_param_name_val_str(sim_params, indParam)
 
         # name of simulation file
-        fname = ( ('%s_sweep_JplusEE%0.3f_network0_stim0_trial0.h5') % (sim_params_name,param))
+        fname = ( ('%s_sweep_%s_network0_stim0_trial0.h5') % (sim_params_name, sweep_params_str))
         full_path_to_file = ( ('%s%s') % (sim_path, fname) )
 
         # load simulation info
@@ -251,22 +293,24 @@ if run:
         avg_bgRate_I_1Active[indParam] = avg_bgRate_I_XActive[1]
 
         # plot rasters and cluster rates
-        plot_rasters_rates(sim_params, param, spikes, bin_times, rates_cluE, bgRate_E, rates_cluI, bgRate_I, save=save_plots, save_path=fig_path)
+        plot_rasters_rates(sim_params, sweep_params_str, spikes, bin_times, rates_cluE, bgRate_E, rates_cluI, bgRate_I, save=save_plots, save_path=fig_path)
 
     # plot mft and sim comparison
     plot_mft_sim_rates(sim_params, 'E', \
-                       JplusEE_backwards_mft, JplusEE_forwards_mft, sweep_JplusEE_sim , \
+                       sweep_params_array_back_mft, sweep_params_array_for_mft, sweep_param_values_sim , \
                        activeRate_E_backwards_mft, inactiveRate_E_backwards_mft, bgRate_E_backwards_mft, \
                        activeRate_E_forwards_mft, inactiveRate_E_forwards_mft, bgRate_E_forwards_mft, \
                        avg_activeRate_E_1Active, avg_inactiveRate_E_1Active, avg_bgRate_E_1Active, \
                        save=save_plots, save_path=fig_path)
 
+    
     plot_mft_sim_rates(sim_params, 'I', \
-                       JplusEE_backwards_mft, JplusEE_forwards_mft, sweep_JplusEE_sim , \
+                       sweep_params_array_back_mft, sweep_params_array_for_mft, sweep_param_values_sim , \
                        activeRate_I_backwards_mft, inactiveRate_I_backwards_mft, bgRate_I_backwards_mft, \
                        activeRate_I_forwards_mft, inactiveRate_I_forwards_mft, bgRate_I_forwards_mft, \
                        avg_activeRate_I_1Active, avg_inactiveRate_I_1Active, avg_bgRate_I_1Active, \
                        save=save_plots, save_path=fig_path)
+    
 
 #%% MAIN FUNCTION
 
