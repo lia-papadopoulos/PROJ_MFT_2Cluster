@@ -67,5 +67,6 @@ params.f_selectiveClus = 0.
 
 
 # parameter sweep for simulations
-params.sweep_param_name = 'JplusEE'
-params.sweep_param_array = np.arange(3,10.5,0.5)
+params.n_sweepParams = 1
+params.sweep_param1_name = 'JplusEE'
+params.sweep_param1_values = np.arange(3,10.5,0.5)
