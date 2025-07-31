@@ -263,3 +263,26 @@ def get_stimulated_neurons(sim_params, random_seed):
 
 
     return None
+
+
+#%% function to specify string of swept parameters and their values
+
+def fcn_swept_param_name_val_str(sim_params, indSweep):
+        
+    sweep_param_str = ''
+
+    for i in range(0, sim_params.n_sweepParams):
+
+        key_to_param_name = ( ('sweep_param%d_name') % (i+1))
+        paramName = vars(sim_params)[key_to_param_name]
+
+        key_to_param_values = ( ('sweep_param%d_values') % (i+1))
+        paramValue = vars(sim_params)[key_to_param_values][indSweep]
+
+        if i == 0:
+            sweep_param_str = ( ('%s%s%0.3f') % (sweep_param_str, paramName, paramValue))
+        else:
+            sweep_param_str = ( ('%s_%s%0.3f') % (sweep_param_str, paramName, paramValue))
+        
+
+    return sweep_param_str
