@@ -88,6 +88,7 @@ def plot_rasters_rates(sim_params, sweep_param_str, spikes, bin_times, rates_clu
     if save:
         plt.savefig( ('%s%s_rasters_rates_%s.png') % (save_path, sim_params_name, sweep_param_str) )
 
+    plt.close()
 
 #%% FOR PLOTTING MFT AND SIM RATES
     
@@ -184,7 +185,7 @@ def main():
     ### LOAD SIMULATION DATA
 
     # load one simulation to get array lengths
-    pattern = ('%s_*_network0_stim0_trial0.h5' % sim_params_name)
+    pattern = ('%s_sweep*_network0_stim0_trial0.h5' % sim_params_name)
     full_path_pattern = os.path.join(sim_path, pattern)
     files_in_directory = glob.glob(full_path_pattern)
 
@@ -195,7 +196,6 @@ def main():
     sim_params, _  = fcn_load_simulations(full_path_to_file)
 
     # get array of swept parameter
-    sweep_param_name = sim_params.sweep_param1_name
     sweep_param_values_sim = sim_params.sweep_param1_values
 
     # number of values in sweep
