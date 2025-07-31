@@ -24,26 +24,22 @@ sim_params_module = ( ('%s.%s') % (sim_params_path, sim_params_name) )
 params = importlib.import_module(sim_params_module).params 
 
 # UNPACK SIMULATION PARAMETERS
-sweep_param_name = params.sweep_param_name
-sweep_param_array = params.sweep_param_array
+sweep_param1_values = params.sweep_param1_values
 
 # SET NUMBER OF SIMULTANEOUS JOBS
 simul_jobs = round(maxCores/cores_per_job)
 
 # FUNCTION TO RUN JOBS
-def masterSim_launchJobs():
+def launchJobs():
       
     # tell task-spooler how many jobs it can run simultaneously
     os.system("tsp -S %s" % simul_jobs)
     
     # number of parameter values
-    nParam_vals = np.size(sweep_param_array)
+    nParam_vals = np.size(sweep_param1_values)
 
     # loop over swept parameter, networks and launch jobs
     for ind_param in range(0, nParam_vals):
-
-        # value of swept parameter
-        sweep_param_value = sweep_param_array[ind_param]
 
         # loop over networks    
         for indNetwork in range(indNet_start, indNet_start + nNetworks):
@@ -55,8 +51,8 @@ def masterSim_launchJobs():
                 for indTrial in range(0,nTrials):
 
                     # arguments to pass main simulation function
-                    str_pass = (' --output_path %s --sim_params_path %s --sim_params_name %s --sweep_param_value %0.3f --indNetwork %d --indStim %d --indTrial %d')
-                    tuple_pass = (output_path, sim_params_path, sim_params_name, sweep_param_value, indNetwork, indStim, indTrial)
+                    str_pass = (' --output_path %s --sim_params_path %s --sim_params_name %s --indNetwork %d --indStim %d --indTrial %d --indSweep %d') 
+                    tuple_pass = (output_path, sim_params_path, sim_params_name, indNetwork, indStim, indTrial, ind_param)
                     
                     # run simulations
                     command = 'tsp python run_simulation_paramSweep.py' + ( str_pass % tuple_pass )
@@ -66,6 +62,6 @@ def masterSim_launchJobs():
 
     
 # CALL JOB LAUNCHER
-masterSim_launchJobs()
+launchJobs()
 
 

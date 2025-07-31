@@ -6,7 +6,7 @@ import h5py
 import importlib
 
 # FOR SETTING UP SIMULATION
-from src.simulation_setup import setup_baseline_parameters, set_initial_voltage, setup_stimulation
+from src.simulation_setup import setup_baseline_parameters, set_initial_voltage, setup_stimulation, fcn_swept_param_name_val_str
 
 # NETWORK GENERATION
 from src.make_networks.generate_network import generate_network
@@ -29,9 +29,17 @@ def get_argparse_parameters(sim_params, args):
 
 #%% FUNCTION THAT SETS CURRENT VALUE OF SWEPT PARAMETER 
 
-def set_value_swept_parameter(sim_params):
+def set_value_swept_parameter(sim_params, args):
 
-    setattr(sim_params, sim_params.sweep_param_name, sim_params.sweep_param_value)
+    for i in range(0, sim_params.n_sweepParams):
+
+        key_to_param_name = ( ('sweep_param%d_name') % (i+1) )
+        paramName = vars(sim_params)[key_to_param_name]
+
+        key_to_param_values = ( ('sweep_param%d_values') % (i+1) )
+        paramValue = vars(sim_params)[key_to_param_values][args.indSweep]
+
+        setattr(sim_params, paramName, paramValue)
 
 
 #%% FUNCTION TO SET SEEDS FOR MODEL INITIALIZATION
@@ -49,9 +57,11 @@ def set_seeds(args):
 
 def save_data(params, args, spikes, network_seed, stimClusters_seed, stimNeurons_seed, initialVoltage_seed):
 
+    # create string of swept parameters and their values for this simulation
+    sweep_param_str = fcn_swept_param_name_val_str(params, args.indSweep)
+
     # create hdf5 file
-    filename = ( ('%s%s_sweep_%s%0.3f_network%d_stim%d_trial%d.h5') % (args.output_path, args.sim_params_name, params.sweep_param_name, \
-                                                                       args.sweep_param_value, args.indNetwork, args.indStim, args.indTrial) )
+    filename = ( ('%s%s_sweep_%s_network%d_stim%d_trial%d.h5') % (args.output_path, args.sim_params_name, sweep_param_str, args.indNetwork, args.indStim, args.indTrial) )
     with h5py.File(filename, 'w') as hf:
 
         # spike times
@@ -85,7 +95,7 @@ def main(args):
     get_argparse_parameters(params, args)
 
     # set value of swept parameter
-    set_value_swept_parameter(params)
+    set_value_swept_parameter(params, args)
 
     # seeds for model initialization
     network_seed, stimClusters_seed, stimNeurons_seed, initialVoltage_seed = set_seeds(args)
@@ -127,10 +137,10 @@ if __name__=='__main__':
     parser.add_argument('-output_path', '--output_path', type=str)
     parser.add_argument('-sim_params_path', '--sim_params_path', type=str)
     parser.add_argument('-sim_params_name', '--sim_params_name', type=str)
-    parser.add_argument('-sweep_param_value', '--sweep_param_value', type=float)
     parser.add_argument('-indNetwork', '--indNetwork', type=int)
     parser.add_argument('-indStim', '--indStim', type=int)
     parser.add_argument('-indTrial', '--indTrial', type=int)
+    parser.add_argument('-indSweep', '--indSweep', type=int)
 
     args = parser.parse_args()
 
