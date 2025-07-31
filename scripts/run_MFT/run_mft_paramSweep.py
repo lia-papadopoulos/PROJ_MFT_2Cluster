@@ -6,18 +6,38 @@ import h5py
 from src.simulation_setup import setup_baseline_parameters
 
 # IMPORT MFT FUNCTIONS
-from src.MFT_tools.MFT_sweep_JeePlus import fcn_JeePlus_sweep_backwards
-from src.MFT_tools.MFT_sweep_JeePlus import fcn_JeePlus_sweep_forwards
+from src.MFT_tools.MFT_paramSweep import fcn_sweep_high_to_low_rate
+from src.MFT_tools.MFT_paramSweep import fcn_sweep_low_to_high_rate
 
 # FILE WITH USER INPUTS
 import userInput
 
 #%% FUNCTION FOR SAVING SIMULATION OUTPUT
 
+def fcn_sweep_param_name(sim_params):
+
+    sweep_param_str = ''
+
+    for i in range(0, sim_params.n_sweepParams):
+
+        key_to_param_name = ( ('sweep_param%d_name') % (i+1))
+        paramName = vars(sim_params)[key_to_param_name]
+
+        if i == 0:
+            sweep_param_str = ( ('%s%s') % (sweep_param_str, paramName))
+        else:
+            sweep_param_str = ( ('%s_%s') % (sweep_param_str, paramName))
+
+    return sweep_param_str
+
+
 def save_data(output_path, sim_params_name, results_backwards_sweep, results_forwards_sweep, sim_params, mft_params):
 
+    # sweep param name
+    sweep_param_str = fcn_sweep_param_name(sim_params)
+
     # create hdf5 file
-    filename = ( ('%s%s_mft_sweep_JplusEE.h5') % (output_path, sim_params_name) )
+    filename = ( ('%s%s_mft_sweep_%s.h5') % (output_path, sim_params_name, sweep_param_str) )
 
     with h5py.File(filename, 'w') as hf:
 
@@ -66,8 +86,8 @@ def main():
     #----------------------------------------------------------------------------------------------------------------------------#
 
     # run the mft
-    results_backwards = fcn_JeePlus_sweep_backwards(sim_params, mft_params)
-    results_forwards = fcn_JeePlus_sweep_forwards(sim_params, mft_params)
+    results_backwards = fcn_sweep_high_to_low_rate(sim_params, mft_params)
+    results_forwards = fcn_sweep_low_to_high_rate(sim_params, mft_params)
 
     #----------------------------------------------------------------------------------------------------------------------------#
 
