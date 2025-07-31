@@ -46,7 +46,7 @@ sim_params_module = ( ('%s.%s') % (sim_params_path, sim_params_name) )
 params = importlib.import_module(sim_params_module).params 
 
 mft_params_module = ( ('%s.%s') % (sim_params_path, mft_params_name) )
-m_params = importlib.import_module(mft_params_module).params 
+m_params = importlib.import_module(mft_params_module).mft_params 
 
 #%% SIMULATION RUN
 
