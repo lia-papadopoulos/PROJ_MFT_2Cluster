@@ -25,6 +25,26 @@ burnTime = settings.burnTime
 save_plots = settings.save_plots
 
 
+#%% REMOVE OLD FIGURES BEFORE CREATING NEW ONES
+
+def fcn_remove_old_figures(directory_path):
+    
+    # Ensure the directory exists before attempting to remove files
+    if os.path.exists(directory_path) and os.path.isdir(directory_path):
+        for item in os.listdir(directory_path):
+            item_path = os.path.join(directory_path, item)
+            if os.path.isfile(item_path):
+                try:
+                    os.remove(item_path)
+                    print(f"Removed file: {item_path}")
+                except OSError as e:
+                    print(f"Error removing file {item_path}: {e}")
+    else:
+        print(f"Directory not found or is not a directory: {directory_path}")
+
+    return None
+
+
 #%% NAME OF SWEPT PARAMETERS AS A STRING
 
 def fcn_sweep_param_name(sim_params):
@@ -131,7 +151,9 @@ def plot_mft_sim_rates(sim_params, inputPop, \
     plt.legend()
 
     if save:
-        plt.savefig( ('%s%s_%srates_mft_sim_sweep%s.pdf') % (save_path, sim_params_name, inputPop, sim_params.sweep_param1_name) )
+        plt.savefig( ('%s%s_%srates_mft_sim_sweep%s.pdf') % (save_path, sim_params_name, inputPop, x_label) )
+
+    plt.close()
 
 
 #%% MAIN FUNCTION
@@ -143,6 +165,9 @@ def main():
     ### MAKE DIRECTORY FOR FIGURES
     fig_path = ( ('%s/%s/') % (save_path, sim_params_name) )
     os.makedirs(fig_path, exist_ok=True)
+
+    ### REMOVE ANY EXISTING FIGURES
+    fcn_remove_old_figures(fig_path)
 
     # LOAD SIMULATION PARAMETERS
     sim_params_module = ( ('%s.%s') % (sim_params_path, sim_params_name) )
@@ -186,7 +211,7 @@ def main():
 
     # load one simulation to get array lengths
     pattern = ('%s_sweep*_network0_stim0_trial0.h5' % sim_params_name)
-    full_path_pattern = os.path.join(sim_path, pattern)
+    full_path_pattern = os.path.join(sim_path, sim_params_name, pattern)
     files_in_directory = glob.glob(full_path_pattern)
 
     # name of simulation file
@@ -216,7 +241,7 @@ def main():
 
         # name of simulation file
         fname = ( ('%s_sweep_%s_network0_stim0_trial0.h5') % (sim_params_name, sweep_params_str))
-        full_path_to_file = ( ('%s%s') % (sim_path, fname) )
+        full_path_to_file = ( ('%s%s/%s') % (sim_path, sim_params_name, fname) )
 
         # load simulation info
         sim_params, spikes  = fcn_load_simulations(full_path_to_file)

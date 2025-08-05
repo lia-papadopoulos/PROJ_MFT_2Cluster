@@ -4,6 +4,7 @@
 import argparse
 import h5py
 import importlib
+import os
 
 # FOR SETTING UP SIMULATION
 from src.simulation_setup import setup_baseline_parameters, set_initial_voltage, setup_stimulation, fcn_swept_param_name_val_str
@@ -60,8 +61,12 @@ def save_data(params, args, spikes, network_seed, stimClusters_seed, stimNeurons
     # create string of swept parameters and their values for this simulation
     sweep_param_str = fcn_swept_param_name_val_str(params, args.indSweep)
 
+    # make output directory if it doesn't exist
+    directory_path = ( ('%s%s/') % (args.output_path, args.sim_params_name) )
+    os.makedirs(directory_path, exist_ok=True)
+
     # create hdf5 file
-    filename = ( ('%s%s_sweep_%s_network%d_stim%d_trial%d.h5') % (args.output_path, args.sim_params_name, sweep_param_str, args.indNetwork, args.indStim, args.indTrial) )
+    filename = ( ('%s%s_sweep_%s_network%d_stim%d_trial%d.h5') % (directory_path, args.sim_params_name, sweep_param_str, args.indNetwork, args.indStim, args.indTrial) )
     with h5py.File(filename, 'w') as hf:
 
         # spike times
