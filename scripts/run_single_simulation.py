@@ -118,15 +118,17 @@ rates_popI = compute_firing_rates.fcn_compute_clusterRates_vs_time(popsizeI, rat
 
 # E cluster rates
 rates_cluE = rates_popE[:p,:].copy()
+rates_bgE = np.mean(rates_popE[p,:])
 avg_cluRate_E = np.mean(rates_cluE, 1)
 
 # I cluster rates
 rates_cluI = rates_popI[:p,:].copy()
+rates_bgI = np.mean(rates_popI[p,:])
 avg_cluRate_I = np.mean(rates_cluI, 1)
 
 # print results
-print(avg_cluRate_E)
-print(avg_cluRate_I)
+print(avg_cluRate_E, rates_bgE)
+print(avg_cluRate_I, rates_bgI)
 
 
 #%% PLOT RASTER
