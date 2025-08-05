@@ -9,6 +9,7 @@ import importlib
 import matplotlib.pyplot as plt
 
 # IMPORT SIMULATION FUNCTIONS
+
 from src.simulation_setup import setup_baseline_parameters, set_initial_voltage, setup_stimulation
 from src.simulation_tools.fcn_simulation_EIextInput import fcn_simulate_expSyn
 
@@ -27,6 +28,7 @@ from src.sim_analysis_tools import compute_firing_rates
 # IMPORT USER SETTINGS
 import userSettings as settings
 
+
 #%% UNPACK SETTINGS FILE
 sim_params_path = settings.sim_params_path
 sim_params_name = settings.sim_params_name
@@ -35,11 +37,13 @@ burnTime = 0.25
 window_std = 25e-3
 window_step = 1e-3
 
+
 #%% SEEDS
 stimClusters_seed = np.random.choice(10000)
 stimNeurons_seed = np.random.choice(1000)
 networkSeed = np.random.choice(10000)
 initialVoltage_seed = np.random.choice(10000)
+
 
 #%% LOAD PARAMETERS
 sim_params_module = ( ('%s.%s') % (sim_params_path, sim_params_name) )
@@ -124,6 +128,7 @@ avg_cluRate_I = np.mean(rates_cluI, 1)
 print(avg_cluRate_E)
 print(avg_cluRate_I)
 
+
 #%% PLOT RASTER
 
 plt.figure(figsize=(5.0,4))
@@ -137,6 +142,7 @@ plt.yticks([])
 plt.xlabel('time [s]')
 plt.ylabel('neuron ID')
 plt.tight_layout()
+
 
 #%% PLOT NETWORK
 
@@ -163,3 +169,5 @@ Cmat_mft = results['Cmat_rec']
 mft_sim_compare, Jmat_mft, Cmat_mft, Jmat_sim_reduced, Cmat_sim_reduced = fcn_compare_J_C_mft_sim(params, Jmat_mft, Cmat_mft, W)
 
 print(mft_sim_compare)
+
+# %%
