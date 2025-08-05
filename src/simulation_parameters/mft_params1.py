@@ -9,7 +9,15 @@ mft_params = SimpleNamespace()
 # set parameters
 mft_params.nu_vec = np.array([50,0,0,15,15,15])
 
-# JplusEE sweep
+# dynamical equations
+mft_params.nSteps_MFT_DynEqs = 10000
+mft_params.dt_MFT_DynEqs = 1e-4
+mft_params.tau_e_MFT_DynEqs = 1e-3
+mft_params.tau_i_MFT_DynEqs = 1e-3
+mft_params.stopThresh_MFT_DynEqs = 1e-8
+mft_params.plot_MFT_DynEqs = False
+
+# parameter sweeps
 mft_params.sweep_param1_values = np.arange(3,10.05,0.05)
 
 # need to reverse parameters for backwards sweep
@@ -26,10 +34,3 @@ mft_params.nu_clusterLow_I = 15.
 mft_params.nu_uniform_E = 20.
 mft_params.nu_uniform_I = 20.
 
-# dynamical equations
-mft_params.nSteps_MFT_DynEqs = 10000
-mft_params.dt_MFT_DynEqs = 1e-4
-mft_params.tau_e_MFT_DynEqs = 1e-3
-mft_params.tau_i_MFT_DynEqs = 1e-3
-mft_params.stopThresh_MFT_DynEqs = 1e-8
-mft_params.plot_MFT_DynEqs = False
