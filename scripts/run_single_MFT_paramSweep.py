@@ -1,4 +1,5 @@
 
+
 #%% STANDARD IMPORTS
 
 import numpy as np
@@ -22,6 +23,7 @@ mft_params_name = settings.mft_params_name
 burnTime = 0.25
 window_std = 25e-3
 window_step = 1e-3
+
 
 #%% LOAD PARAMETERS
 sim_params_module = ( ('%s.%s') % (sim_params_path, sim_params_name) )
@@ -61,7 +63,7 @@ x = results_forwards['sweep_params_array_for'][0, :]
 y = results_forwards['nu_e_forSweep'][1,:,0]
 plt.plot(x, y, '-o', color='black', linewidth=2, markersize=2, label='inactive for')
 
-plt.xlabel('JPlusEE')
+plt.xlabel('swept parameters')
 plt.ylabel('E cluster rate')
 plt.legend()
 
@@ -77,6 +79,7 @@ x = results_backwards['sweep_params_array_back'][0, :]
 y = results_backwards['nu_i_backSweep'][1,:,0]
 plt.plot(x, y, '-o', color='red', linewidth=4, label='inactive back')
 
-plt.xlabel('JPlusEE')
+plt.xlabel('swept parameters')
 plt.ylabel('I cluster rate')
 plt.legend()
+# %%

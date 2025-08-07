@@ -157,6 +157,7 @@ def fcn_compute_Sigma2(nu, nu_ext, Jab, Cab, Jab_ext, Cab_ext, tau_m, ext_varian
     # VARIANCE OF INPUT TO EACH POPULATION
     sig2_recurrent_vec = np.matmul( (Cab*Jab*Jab) , nu) * tau_m
     sig2_external_vec = Jab_ext*Jab_ext*Cab_ext*tau_m*nu_ext*ext_variance
+
     sig2_vec =  sig2_recurrent_vec + sig2_external_vec
     
     return sig2_vec
