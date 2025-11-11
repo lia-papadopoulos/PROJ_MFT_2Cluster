@@ -122,30 +122,31 @@ def plot_mft_sim_rates(sim_params, inputPop, \
     # check dimensions
     if sweep_params_array_back_mft.ndim == 1:
         x_back = sweep_params_array_back_mft.copy()
+        x_for = sweep_params_array_for_mft.copy()
+
     else:
         x_back = sweep_params_array_back_mft[0,:].copy()
+        x_for = sweep_params_array_for_mft[0,:].copy()
 
     # label for x axis
     x_label = fcn_sweep_param_name(sim_params)
 
     plt.figure()
     # backwards
-    plt.plot(x_back, activeRate_E_backwards_mft, '-', linewidth=5, color='lightseagreen', label= ('active %s MFT' % inputPop)) 
-    plt.plot(x_back, inactiveRate_E_backwards_mft, '-', linewidth=2, color='mediumpurple', label= ('inactive %s MFT' % inputPop))
+    plt.plot(x_back, activeRate_E_backwards_mft, '-', linewidth=4, color='dimgray', label= ('%s cluster MFT' % inputPop)) 
+    plt.plot(x_back, inactiveRate_E_backwards_mft, '-', linewidth=4, color='dimgray')
     if np.isnan(avg_bgRate_E_1Active[0]) == False:
-        plt.plot(x_back, bgRate_E_backwards_mft, '-', color='gold', linewidth=5, label= ('bgr %s MFT' % inputPop))
+        plt.plot(x_back, bgRate_E_backwards_mft, '-', color='lightsteelblue', linewidth=4, label= ('%s bgr MFT' % inputPop))
     # forwards
-    '''
-    plt.plot(JplusEE_forwards_mft, activeRate_E_forwards_mft, '--', linewidth=2, color='gray', label='clu %s MFT (uniform)')
-    plt.plot(JplusEE_forwards_mft, inactiveRate_E_forwards_mft, '--', linewidth=2, color='gray')
+    plt.plot(x_for, activeRate_E_forwards_mft, '-', linewidth=4, color='darkgray', label=('%s uniform MFT' % inputPop))
+    plt.plot(x_for, inactiveRate_E_forwards_mft, '-', linewidth=4, color='darkgray')
     if np.isnan(avg_bgRate_E_1Active[0]) == False:
-        plt.plot(JplusEE_forwards_mft, bgRate_E_forwards_mft, '--', color='darkgray', linewidth=2, label='bgr %s MFT (uniform)')
-    '''
+        plt.plot(x_for, bgRate_E_forwards_mft, '-', color='lavender', linewidth=4, label=('%s bgr MFT' % inputPop))
     # sims
-    plt.plot(sweep_JplusEE_sim, avg_activeRate_E_1Active, 'o', color='lightseagreen', label= ('active %s SIM' % inputPop)) 
-    plt.plot(sweep_JplusEE_sim, avg_inactiveRate_E_1Active, 'o',color='mediumpurple', label= ('inactive %s SIM' % inputPop))
+    plt.plot(sweep_JplusEE_sim, avg_activeRate_E_1Active, 'o', color='lightseagreen', label= ('%s active SIM' % inputPop)) 
+    plt.plot(sweep_JplusEE_sim, avg_inactiveRate_E_1Active, 'o',color='mediumpurple', label= ('%s inactive SIM' % inputPop))
     if np.isnan(avg_bgRate_E_1Active[0]) == False:
-        plt.plot(sweep_JplusEE_sim, avg_bgRate_E_1Active, 'o', color='gold', label= ('bgr %s SIM' % inputPop))
+        plt.plot(sweep_JplusEE_sim, avg_bgRate_E_1Active, 'o', color='gold', label= ('%s bgr SIM' % inputPop))
     plt.xlabel(x_label)
     plt.ylabel('population rates [spks/sec]')
     plt.legend()
@@ -155,6 +156,111 @@ def plot_mft_sim_rates(sim_params, inputPop, \
 
     plt.close()
 
+
+#%% FOR PLOTTING MFT AND SIM RATES
+    
+def plot_mft_sim_rates_stability(sim_params, inputPop, \
+                       sweep_params_array_back_mft, sweep_params_array_for_mft, sweep_JplusEE_sim , \
+                       activeRate_E_backwards_mft, inactiveRate_E_backwards_mft, bgRate_E_backwards_mft, \
+                       activeRate_E_forwards_mft, inactiveRate_E_forwards_mft, bgRate_E_forwards_mft, \
+                      largest_realPart_eigS_back, largest_realPart_eigS_for, \
+                       avg_activeRate_E_1Active, avg_inactiveRate_E_1Active, avg_bgRate_E_1Active, \
+                       save=False, save_path=''):
+    
+    # check dimensions
+    if sweep_params_array_back_mft.ndim == 1:
+        x_back = sweep_params_array_back_mft.copy()
+        x_for = sweep_params_array_for_mft.copy()
+    else:
+        x_back = sweep_params_array_back_mft[0,:].copy()
+        x_for = sweep_params_array_for_mft[0,:].copy()
+
+    # label for x axis
+    x_label = fcn_sweep_param_name(sim_params)
+
+    # stability
+    stable_sol_forwards = np.nonzero(largest_realPart_eigS_for < 0)[0]
+    unstable_sol_forwards = np.nonzero(largest_realPart_eigS_for >= 0)[0]
+    stable_sol_back = np.nonzero(largest_realPart_eigS_back < 0)[0]
+    unstable_sol_back = np.nonzero(largest_realPart_eigS_back >= 0)[0]
+
+    # largest real part of stability matrix eigenvalues
+
+    plt.figure()
+
+    y = largest_realPart_eigS_back
+    plt.plot(x_back, y, '-o', color='dimgray', linewidth=2, markersize=2, label='cluster solution')
+
+    y = largest_realPart_eigS_for
+    plt.plot(x_for, y, '-o', color='darkgray', linewidth=2, markersize=2, label='uniform solution')
+
+    x = [np.min(x_for), np.max(x_for)]
+    y = [0,0]
+    plt.plot(x, y, color='purple', linewidth=2)
+
+    plt.xlabel(x_label)
+    plt.ylabel('largest $Re(\lambda)$ of stability matrix')
+    plt.legend()
+    if save:
+        plt.savefig( ('%s%s_largestRealpartEigStability_mft_sweep%s.pdf') % (save_path, sim_params_name, x_label) )
+
+    plt.close()
+
+
+    # rates with stability
+
+    plt.figure()
+
+    # backwards solution
+
+    y = activeRate_E_backwards_mft[stable_sol_back]
+    plt.plot(x_back[stable_sol_back], y, '-', color='dimgray', linewidth=4, markersize=2)
+
+    y = activeRate_E_backwards_mft[unstable_sol_back]
+    plt.plot(x_back[unstable_sol_back], y, '--', color='dimgray', linewidth=4, markersize=2)
+
+    y = inactiveRate_E_backwards_mft[stable_sol_back]
+    plt.plot(x_back[stable_sol_back], y, '-', color='dimgray', linewidth=4, markersize=2)
+
+    y = inactiveRate_E_backwards_mft[unstable_sol_back]
+    plt.plot(x_back[unstable_sol_back], y, '--', color='dimgray', linewidth=4, markersize=2)
+
+    # forwards solution
+
+    y = activeRate_E_forwards_mft[stable_sol_forwards]
+    plt.plot(x_for[stable_sol_forwards], y, '-', color='darkgray', linewidth=4, markersize=2)
+
+    y = activeRate_E_forwards_mft[unstable_sol_forwards]
+    plt.plot(x_for[unstable_sol_forwards], y, '--', color='darkgray', linewidth=4, markersize=2)
+
+    y = inactiveRate_E_forwards_mft[stable_sol_forwards]
+    plt.plot(x_for[stable_sol_forwards], y, '-', color='darkgray', linewidth=4, markersize=2)
+
+    y = inactiveRate_E_forwards_mft[unstable_sol_forwards]
+    plt.plot(x_for[unstable_sol_forwards], y, '--', color='darkgray', linewidth=4, markersize=2)
+
+
+
+    x = np.nan
+    y = np.nan
+    plt.plot(x, y, '-', color='dimgray', label=('stable MFT (cluster)'))
+    plt.plot(x, y, '--', color='dimgray', label=('unstable MFT (cluster)'))
+    plt.plot(x, y, '-', color='darkgray', label=('stable MFT (uniform)'))
+    plt.plot(x, y, '--', color='darkgray', label=('unstable MFT (uniform)'))
+
+    # sims
+    plt.plot(sweep_JplusEE_sim, avg_activeRate_E_1Active, 'o', color='lightseagreen', label= ('active SIM')) 
+    plt.plot(sweep_JplusEE_sim, avg_inactiveRate_E_1Active, 'o',color='mediumpurple', label= ('inactive SIM'))
+    if np.isnan(avg_bgRate_E_1Active[0]) == False:
+        plt.plot(sweep_JplusEE_sim, avg_bgRate_E_1Active, 'o', color='gold', label= ('bgr SIM'))
+    plt.xlabel(x_label)
+    plt.ylabel('%s population rates [spks/sec]' % inputPop)
+    plt.legend()
+
+    if save:
+        plt.savefig( ('%s%s_%srates_mft_sim_sweep%s_withStability.pdf') % (save_path, sim_params_name, inputPop, x_label) )
+
+    plt.close()
 
 #%% MAIN FUNCTION
 
@@ -189,6 +295,8 @@ def main():
     # unpack info we'll want to plot
     sweep_params_array_back_mft = backwards_sweep_MFT.sweep_params_array_back
     
+    largest_realPart_eigS_back = backwards_sweep_MFT.largest_realPart_eigS_back[:,0]
+
     activeRate_E_backwards_mft = backwards_sweep_MFT.nu_e_backSweep[0,:,0]
     inactiveRate_E_backwards_mft = backwards_sweep_MFT.nu_e_backSweep[1,:,0]
     bgRate_E_backwards_mft = backwards_sweep_MFT.nu_e_backSweep[-1,:,0]
@@ -199,6 +307,8 @@ def main():
 
     sweep_params_array_for_mft = forwards_sweep_MFT.sweep_params_array_for
     
+    largest_realPart_eigS_for = forwards_sweep_MFT.largest_realPart_eigS_for[:,0]
+
     activeRate_E_forwards_mft = forwards_sweep_MFT.nu_e_forSweep[0,:,0]
     inactiveRate_E_forwards_mft = forwards_sweep_MFT.nu_e_forSweep[1,:,0]
     bgRate_E_forwards_mft = forwards_sweep_MFT.nu_e_forSweep[-1,:,0]
@@ -338,6 +448,13 @@ def main():
                        avg_activeRate_I_1Active, avg_inactiveRate_I_1Active, avg_bgRate_I_1Active, \
                        save=save_plots, save_path=fig_path)
     
+    plot_mft_sim_rates_stability(sim_params, 'E', \
+                       sweep_params_array_back_mft, sweep_params_array_for_mft, sweep_param_values_sim , \
+                       activeRate_E_backwards_mft, inactiveRate_E_backwards_mft, bgRate_E_backwards_mft, \
+                       activeRate_E_forwards_mft, inactiveRate_E_forwards_mft, bgRate_E_forwards_mft, \
+                       largest_realPart_eigS_back, largest_realPart_eigS_for, \
+                       avg_activeRate_E_1Active, avg_inactiveRate_E_1Active, avg_bgRate_E_1Active, \
+                       save=save_plots, save_path=fig_path)
 
 #%% MAIN FUNCTION
 

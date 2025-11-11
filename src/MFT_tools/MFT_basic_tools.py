@@ -300,3 +300,81 @@ def fcn_MFT_rate_roots(nu_vec_in, nu_ext, \
         
     # return solution    
     return sol
+
+#%% COMPUTE STABILITY MATRIX -- VERSION1    
+
+def fcn_stability_matrix_v1(nu_fixed_point, tau_m, tau_s, Vr, Vth, nu_ext, \
+                            Jab, Cab, Jab_ext, Cab_ext, externalNoise):
+    
+        
+    
+    # total number of dynamical populations
+    n_dynPops = np.size(nu_fixed_point)
+   
+    # mean input at fixed point
+    Mu_vec = fcn_compute_Mu(nu_fixed_point, nu_ext, Jab, Cab, Jab_ext, Cab_ext, tau_m)
+        
+    # standard deviation at fixed point
+    Sigma2 = fcn_compute_Sigma2(nu_fixed_point, nu_ext, Jab, Cab, Jab_ext, Cab_ext, tau_m, externalNoise)
+    Sigma_vec = np.sqrt(Sigma2)
+        
+    # COMPUTE STABILITY MATRIX ELEMENTS
+    
+    d_phi_m_d_mu_m = np.zeros((n_dynPops))
+    d_phi_m_d_sig_m = np.zeros((n_dynPops))
+    
+    dmu_m_dnu_n = np.zeros((n_dynPops, n_dynPops))    
+    dsig_m_dnu_n = np.zeros((n_dynPops, n_dynPops))
+
+    dphi_m_dnu_n = np.zeros((n_dynPops, n_dynPops))
+    
+    delta_m_n = np.zeros((n_dynPops, n_dynPops))
+    np.fill_diagonal(delta_m_n,1)
+    
+    S = np.zeros((n_dynPops, n_dynPops))
+    
+    
+    # LOOP OVER ALL POPULATIONS
+    for m in range(0, n_dynPops):
+
+        
+        phi = nu_fixed_point[m]
+            
+        BS = fcn_BrunelSergi_correction(tau_m[m], tau_s[m])
+                    
+        lth_m = (Vth[m] - Mu_vec[m])/Sigma_vec[m] + BS
+        lr_m = (Vr[m] - Mu_vec[m])/Sigma_vec[m] + BS
+                
+        qth_m = fcn_firingRate_integrand(lth_m)
+        qr_m = fcn_firingRate_integrand(lr_m)
+                
+        d_lth_m_d_sig_m = -(Vth[m] - Mu_vec[m])/(Sigma_vec[m]**2)
+        d_lr_m_d_sig_m = -(Vr[m] - Mu_vec[m])/(Sigma_vec[m]**2)
+        
+        d_lth_m_d_mu_m = -1/Sigma_vec[m]
+        d_lr_m_d_mu_m = -1/Sigma_vec[m]
+        
+        d_phi_m_d_mu_m[m] =  -(phi**2)*tau_m[m]*( qth_m*d_lth_m_d_mu_m - qr_m*d_lr_m_d_mu_m )
+        d_phi_m_d_sig_m[m] = -(phi**2)*tau_m[m]*( qth_m*d_lth_m_d_sig_m - qr_m*d_lr_m_d_sig_m )
+
+        
+        # take derivatives with respect to all others       
+        for n in range(0, n_dynPops):
+                        
+                
+            dmu_m_dnu_n[m,n] = tau_m[m]*Jab[m,n]*Cab[m,n]             
+            dsig_m_dnu_n[m,n] = (1 / (2*Sigma_vec[m])) * tau_m[m]*Jab[m,n]*Jab[m,n]*Cab[m,n] 
+            
+            dphi_m_dnu_n[m,n] = d_phi_m_d_mu_m[m]*dmu_m_dnu_n[m,n] + d_phi_m_d_sig_m[m]*dsig_m_dnu_n[m,n]
+            
+
+            S[m,n] = (1/tau_m[m])*( dphi_m_dnu_n[m,n] - delta_m_n[m,n] ) 
+                
+            
+    
+    # compute eigenvalues
+    eigenvals_S = np.linalg.eigvals(S)
+    realPart_eigvals_S = np.real(eigenvals_S)
+            
+    return S, eigenvals_S, realPart_eigvals_S    
+

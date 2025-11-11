@@ -51,7 +51,9 @@ def fcn_sweep_high_to_low_rate(sim_params, mft_params):
     nu_i_back = np.zeros((n_i_pops, n_sweepValues, len(n_activeClusters_sweep)))
     n_activeClustersE_back = np.zeros((n_sweepValues, len(n_activeClusters_sweep)), dtype=int)
     n_activeClustersI_back = np.zeros((n_sweepValues, len(n_activeClusters_sweep)), dtype=int)
-        
+    S = np.zeros((n_sweepValues, len(n_activeClusters_sweep)), dtype='object')
+    largest_realPart_eigS_back = np.zeros((n_sweepValues, len(n_activeClusters_sweep)))
+     
     # loop over number of active clusters in solution
     for ind_nActive in range(0, len(n_activeClusters_sweep)):
         
@@ -93,16 +95,18 @@ def fcn_sweep_high_to_low_rate(sim_params, mft_params):
 
                 sweep_params_array_back[i, indSweep] = paramValue
                         
-            # if first Jee+ value, solve using dynamical equations
+            # if first Jee+ value, solve using dynamical equations, then root
             if indSweep == 0:
                 mft_results = MFT_solve.solveMFT_fixedInDeg_EI_net_dynEqs(sim_params, mft_params)
+                mft_params.nu_vec = mft_results['nu_out'].copy()
+                mft_results = MFT_solve.solveMFT_fixedInDeg_EI_net_rootEqs(sim_params, mft_params)
             else:
                 mft_results = MFT_solve.solveMFT_fixedInDeg_EI_net_rootEqs(sim_params, mft_params)
 
             # output firing rate
             nu_vec = mft_results['nu_out'].copy()
 
-            # if no solution found, try with dynamical equations
+            # if no solution found, try with dynamical equations, then root
             if np.isnan(nu_vec[0]) == True:
                 
                 print('trying cluster fixed point w/ dynamical equations')
@@ -112,11 +116,13 @@ def fcn_sweep_high_to_low_rate(sim_params, mft_params):
                     
                 # run MFT
                 mft_results = MFT_solve.solveMFT_fixedInDeg_EI_net_dynEqs(sim_params, mft_params)
+                mft_params.nu_vec = mft_results['nu_out'].copy()
+                mft_results = MFT_solve.solveMFT_fixedInDeg_EI_net_rootEqs(sim_params, mft_params)
                     
                 # output rates
                 nu_vec = mft_results['nu_out'].copy()
                 
-            # if no solution found, try uniform fixed point with dynamical equations
+            # if no solution found, try uniform fixed point with dynamical equations, then root
             if np.isnan(nu_vec[0]) == True:
                 
                 print('trying uniform fixed point w/ dynamical equations')
@@ -126,7 +132,9 @@ def fcn_sweep_high_to_low_rate(sim_params, mft_params):
                 
                 # run MFT
                 mft_results = MFT_solve.solveMFT_fixedInDeg_EI_net_dynEqs(sim_params, mft_params)
-            
+                mft_params.nu_vec = mft_results['nu_out'].copy()
+                mft_results = MFT_solve.solveMFT_fixedInDeg_EI_net_rootEqs(sim_params, mft_params)
+
                 # output rates
                 nu_vec = mft_results['nu_out'].copy()
             
@@ -149,7 +157,11 @@ def fcn_sweep_high_to_low_rate(sim_params, mft_params):
             # save solution 
             nu_e_back[:, indSweep, ind_nActive] = nu_vec[:n_e_pops].copy()
             nu_i_back[:, indSweep, ind_nActive] = nu_vec[n_e_pops:].copy()  
-            
+
+            # save stability
+            largest_realPart_eigS_back[indSweep, ind_nActive] = np.nanmax(mft_results['realPart_eigvals_S'])
+            S[indSweep, ind_nActive] = mft_results['S']
+                
             # update initial guess at solution           
             mft_params.nu_vec = nu_vec.copy()
         
@@ -163,6 +175,7 @@ def fcn_sweep_high_to_low_rate(sim_params, mft_params):
     results['nu_i_backSweep'] = nu_i_back
     results['n_activeClustersE_back'] = n_activeClustersE_back
     results['n_activeClustersI_back'] = n_activeClustersI_back
+    results['largest_realPart_eigS_back'] = largest_realPart_eigS_back
 
     return results
 
@@ -208,6 +221,7 @@ def fcn_sweep_low_to_high_rate(sim_params, mft_params):
     nu_i_for = np.zeros((n_i_pops, n_sweepValues, len(n_activeClusters_sweep)))
     n_activeClustersE_for = np.zeros((n_sweepValues, len(n_activeClusters_sweep)), dtype=int)
     n_activeClustersI_for = np.zeros((n_sweepValues, len(n_activeClusters_sweep)), dtype=int)
+    largest_realPart_eigS_for = np.zeros((n_sweepValues, len(n_activeClusters_sweep)))
 
     # loop over number of active clusters in solution
     for ind_nActive in range(0, len(n_activeClusters_sweep)):
@@ -250,7 +264,7 @@ def fcn_sweep_low_to_high_rate(sim_params, mft_params):
 
                 sweep_params_array_for[i, indSweep] = paramValue
                         
-            # if first Jee+ value, solve using dynamical equations
+            # if first swept value, solve using dynamical equations
             if indSweep == 0:
                 mft_results = MFT_solve.solveMFT_fixedInDeg_EI_net_dynEqs(sim_params, mft_params)
             else:
@@ -269,7 +283,7 @@ def fcn_sweep_low_to_high_rate(sim_params, mft_params):
                     
                 # run MFT
                 mft_results = MFT_solve.solveMFT_fixedInDeg_EI_net_dynEqs(sim_params, mft_params)
-                    
+
                 # output rates
                 nu_vec = mft_results['nu_out'].copy()
             
@@ -306,6 +320,9 @@ def fcn_sweep_low_to_high_rate(sim_params, mft_params):
             # save solution 
             nu_e_for[:,indSweep, ind_nActive] = nu_vec[:n_e_pops].copy()
             nu_i_for[:,indSweep, ind_nActive] = nu_vec[n_e_pops:].copy()  
+
+            # save stability
+            largest_realPart_eigS_for[indSweep, ind_nActive] = np.nanmax(mft_results['realPart_eigvals_S'])
             
             # update initial guess at solution           
             mft_params.nu_vec = nu_vec.copy()
@@ -321,6 +338,7 @@ def fcn_sweep_low_to_high_rate(sim_params, mft_params):
     results['nu_i_forSweep'] = nu_i_for
     results['n_activeClustersE_for'] = n_activeClustersE_for
     results['n_activeClustersI_for'] = n_activeClustersI_for
+    results['largest_realPart_eigS_for'] = largest_realPart_eigS_for
 
     return results
 

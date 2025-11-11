@@ -97,6 +97,15 @@ def solveMFT_fixedInDeg_EI_net_rootEqs(s_params, m_params):
         print('verified solution is self consistent.')
     else:
         sys.exit('ERROR: Solution is not self-consistent!')
+
+    # compute stability
+    S, eigenvals_S, realPart_eigvals_S = MFT_basic_tools.fcn_stability_matrix_v1(nu_out, tau_m_vec, tau_s_vec, Vr_vec, Vth_vec, nu_ext, \
+                            Jmat_rec, Cmat_rec, Jmat_ext, Cmat_ext, externalNoise)
+    
+    if nu_check == False:
+        S = np.nan*S
+        eigenvals_S = np.nan*eigenvals_S
+        realPart_eigvals_S = np.nan*realPart_eigvals_S
     
     # get populations that exist
     Epops_exist = MFT_clusteredEINetworks_tools.fcn_find_existing_pops(bgrE, p)
@@ -117,6 +126,8 @@ def solveMFT_fixedInDeg_EI_net_rootEqs(s_params, m_params):
     results['Sigma2'] = Sigma2
     results['m_params'] = m_params
     results['sol'] = sol
+    results['S'] = S
+    results['realPart_eigvals_S'] = realPart_eigvals_S
                         
     return results
 
@@ -213,6 +224,15 @@ def solveMFT_fixedInDeg_EI_net_dynEqs(s_params, m_params):
         print('ERROR: Solution is not self-consistent!')
         nu_out = np.nan*nu_out
 
+    # compute stability
+    S, eigenvals_S, realPart_eigvals_S = MFT_basic_tools.fcn_stability_matrix_v1(nu_out, tau_m_vec, tau_s_vec, Vr_vec, Vth_vec, nu_ext, \
+                            Jmat_rec, Cmat_rec, Jmat_ext, Cmat_ext, externalNoise)
+    
+    if nu_check == False:
+        S = np.nan*S
+        eigenvals_S = np.nan*eigenvals_S
+        realPart_eigvals_S = np.nan*realPart_eigvals_S
+
     # get populations that exist
     Epops_exist = MFT_clusteredEINetworks_tools.fcn_find_existing_pops(bgrE, p)
     Ipops_exist = MFT_clusteredEINetworks_tools.fcn_find_existing_pops(bgrI, p)
@@ -231,5 +251,7 @@ def solveMFT_fixedInDeg_EI_net_dynEqs(s_params, m_params):
     results['Mu'] = Mu
     results['Sigma2'] = Sigma2
     results['m_params'] = m_params
+    results['S'] = S
+    results['realPart_eigvals_S'] = realPart_eigvals_S
                         
     return results
